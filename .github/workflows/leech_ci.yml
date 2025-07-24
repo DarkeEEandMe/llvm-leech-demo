@@ -29,7 +29,7 @@ jobs:
       - name: Compile infected target with LLVM Pass
         run: |
           cd build
-          clang -flegacy-pass-manager \
+          clang-18 -flegacy-pass-manager \
             -Xclang -load -Xclang ./libinject_payload_pass.so \
             ../infected_target.c -o infected_target
           chmod +x infected_target
