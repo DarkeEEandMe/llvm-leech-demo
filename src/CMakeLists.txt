@@ -4,16 +4,12 @@ project(LLVM_Leech)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Locate LLVM package
 find_package(LLVM REQUIRED CONFIG)
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+include(HandleLLVMOptions)
+include(AddLLVM)
 
-# Include LLVM headers
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-# LLVM pass (shared library)
-add_library(inject_payload_pass MODULE inject_payload_pass.cpp)
-
-# Link against LLVM libraries
-llvm_map_components_to_libnames(llvm_libs support core irreader passes)
-target_link_libraries(inject_payload_pass ${llvm_libs})
+add_llvm_pass_plugin(inject_payload_pass inject_payload_pass.cpp)
