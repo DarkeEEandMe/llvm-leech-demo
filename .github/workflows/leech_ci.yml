@@ -7,10 +7,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup LLVM Environment
+      - name: Setup official LLVM/Clang (latest stable)
         run: |
-          sudo apt update
-          sudo apt install llvm clang cmake -y
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 18  # installs LLVM/Clang 18
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
+          sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-18 100
+          sudo update-alternatives --install /usr/bin/opt opt /usr/bin/opt-18 100
+          sudo apt install cmake -y
+
+      - name: Verify Clang Version
+        run: |
+          clang --version
+          opt --version
 
       - name: Build LLVM Pass (inject_payload_pass.so)
         run: |
