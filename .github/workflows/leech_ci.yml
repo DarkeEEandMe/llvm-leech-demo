@@ -25,9 +25,11 @@ jobs:
           cmake ../src
           make
 
-      - name: Verify shared object exists
+      - name: Verify shared object exists (corrected path)
         run: |
-          test -f build/inject_payload_pass.so && echo "Shared library compiled successfully" || (echo "Compilation failed" && exit 1)
+          test -f build/inject_payload_pass.so && echo "Shared library compiled successfully" || \
+          test -f inject_payload_pass.so && echo "Shared library compiled successfully" || \
+          (echo "Compilation failed - shared library not found" && exit 1)
 
       - name: Compile infected target with LLVM Pass
         run: |
