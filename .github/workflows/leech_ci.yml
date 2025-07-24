@@ -1,4 +1,4 @@
-name: LLVM Leech CI Debug
+name: LLVM Leech CI Build
 on: [push]
 
 jobs:
@@ -18,14 +18,19 @@ jobs:
           sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-18 100
           sudo update-alternatives --install /usr/bin/opt opt /usr/bin/opt-18 100
 
-      - name: Find all LLVMConfig.cmake paths for LLVM_DIR debug
+      - name: Build LLVM Pass (.so from .cpp)
         run: |
-          echo "Searching for all LLVMConfig.cmake paths:"
-          find /usr -name LLVMConfig.cmake 2>/dev/null | tee /tmp/llvmconfig_found.txt
-          echo "-------"
-          echo "Now also searching system-wide, may take 1-2 mins:"
-          find / -name LLVMConfig.cmake 2>/dev/null | tee -a /tmp/llvmconfig_found.txt
-          echo "-------"
-          echo "Contents of /tmp/llvmconfig_found.txt for copy-paste:"
-          cat /tmp/llvmconfig_found.txt
-          exit 0  # Stop here so you can see the result in CI logs
+          mkdir -p build
+          cd build
+          cmake -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm ../src
+          make
+          ls -l
+
+      - name: Compile infected target with LLVM Pass
+        run: |
+          cd build
+          clang -flegacy-pass-manager \
+            -Xclang -load -Xclang ./libinject_payload_pass.so \
+            ../infected_target.c -o infected_target
+          chmod +x infected_target
+          ./infected_target
