@@ -1,0 +1,11 @@
+
+LLVM LEECH — BloodScript Compiler Infection
+
+- Infects binaries at build time using LLVM plugin pass
+- Works with C, C++, Rust (via LLVM backend)
+- Zero runtime trace or file tampering
+- Payload activates on execution — beacon, shell, hook, etc.
+- No source modification required
+- Total subversion of trusted toolchain
+
+DarkeHAVEN Research
