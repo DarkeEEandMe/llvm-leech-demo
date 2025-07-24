@@ -26,10 +26,10 @@ jobs:
           make
           ls -l
 
-      - name: Compile infected target with LLVM Pass
+      - name: Compile infected target with LLVM Pass (no legacy PM)
         run: |
           cd build
-          clang-18 -flegacy-pass-manager \
+          clang-18 \
             -Xclang -load -Xclang ./libinject_payload_pass.so \
             ../infected_target.c -o infected_target
           chmod +x infected_target
