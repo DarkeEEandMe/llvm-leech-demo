@@ -24,13 +24,15 @@ jobs:
           cd build
           cmake -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm ../src
           make
-          ls -l
+          ls -lh
+          # Guarantee name is inject_payload_pass.so for the next step
+          if [ -f libinject_payload_pass.so ]; then mv libinject_payload_pass.so inject_payload_pass.so; fi
 
       - name: Compile infected target with LLVM Pass (no legacy PM)
         run: |
           cd build
           clang-18 \
-            -Xclang -load -Xclang ./libinject_payload_pass.so \
+            -Xclang -load -Xclang ./inject_payload_pass.so \
             ../infected_target.c -o infected_target
           chmod +x infected_target
           ./infected_target
