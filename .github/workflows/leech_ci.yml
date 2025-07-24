@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup official LLVM/Clang (latest stable)
+      - name: Install LLVM/Clang (official version)
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
@@ -18,24 +18,21 @@ jobs:
           sudo update-alternatives --install /usr/bin/opt opt /usr/bin/opt-18 100
           sudo apt install cmake -y
 
-      - name: Verify LLVM/Clang Installation
-        run: |
-          clang --version
-          opt --version
-
-      - name: Build LLVM Pass (inject_payload_pass.so)
+      - name: Build LLVM Pass (.so from .cpp)
         run: |
           mkdir -p build
           cd build
           cmake ../src
           make
-          ls -la inject_payload_pass.so  # Verify file exists explicitly
+
+      - name: Verify shared object exists
+        run: |
+          test -f build/inject_payload_pass.so && echo "Shared library compiled successfully" || (echo "Compilation failed" && exit 1)
 
       - name: Compile infected target with LLVM Pass
         run: |
-          cd build
           clang -flegacy-pass-manager \
-            -Xclang -load -Xclang $(pwd)/inject_payload_pass.so \
-            ../src/infected_target.c -o infected_target
+            -Xclang -load -Xclang ./build/inject_payload_pass.so \
+            src/infected_target.c -o infected_target
           chmod +x infected_target
           ./infected_target
