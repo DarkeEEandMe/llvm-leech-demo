@@ -1,4 +1,4 @@
-name: LLVM Leech CI Exploit
+name: LLVM Leech CI Debug
 on: [push]
 
 jobs:
@@ -7,30 +7,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install LLVM/Clang 18 and dev headers
+      - name: Install ALL LLVM/Clang 18 dev tools, runtime, and headers
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 18
-          sudo apt install -y llvm-18-dev clang-18 cmake
+          sudo apt install -y llvm-18 llvm-18-dev llvm-18-tools llvm-18-runtime clang-18 cmake
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
           sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-18 100
           sudo update-alternatives --install /usr/bin/opt opt /usr/bin/opt-18 100
 
-      - name: Build LLVM Pass (.so from .cpp)
+      - name: Find all LLVMConfig.cmake paths for LLVM_DIR debug
         run: |
-          mkdir -p build
-          cd build
-          cmake -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm ../src
-          make
-          ls -l
-
-      - name: Compile infected target with LLVM Pass
-        run: |
-          cd build
-          clang -flegacy-pass-manager \
-            -Xclang -load -Xclang ./libinject_payload_pass.so \
-            ../src/infected_target.c -o infected_target
-          chmod +x infected_target
-          ./infected_target
+          echo "Searching for all LLVMConfig.cmake paths:"
+          find /usr -name LLVMConfig.cmake 2>/dev/null | tee /tmp/llvmconfig_found.txt
+          echo "-------"
+          echo "Now also searching system-wide, may take 1-2 mins:"
+          find / -name LLVMConfig.cmake 2>/dev/null | tee -a /tmp/llvmconfig_found.txt
+          echo "-------"
+          echo "Contents of /tmp/llvmconfig_found.txt for copy-paste:"
+          cat /tmp/llvmconfig_found.txt
+          exit 0  # Stop here so you can see the result in CI logs
